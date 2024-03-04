@@ -50,11 +50,11 @@ manifest_path=$curr_dir/manifest/$dataset
 if [[ $resume == "true" ]] ; then
   #example ./model_outputs/xlsr2_300m/2944/outputs/2024-03-03/14-36-20/2944/checkpoint_last.pt
   restore_file=$(ls -t outputs/*/*/"$fold"/checkpoint_last.pt)
-  restore_file=$(realpath $restore_file)
-  echo "restore_file: $restore_file"
+  restore_file=$(realpath "$restore_file")
+  echo "restore_file: "$restore_file""
 
   #assert that the file exists
-  if [[ ! -f $restore_file ]]; then
+  if [[ ! -f "$restore_file" ]]; then
     echo "File $restore_file does not exist"
     exit 1
   fi
