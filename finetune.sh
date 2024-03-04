@@ -47,13 +47,6 @@ echo "Running on fold: $fold"
 save_dir=$fold
 
 manifest_path=$curr_dir/manifest/$dataset
-<<<<<<< HEAD
-#replace spaces in $fold with escaped space
-fold=${fold// /\\ }
-args=task.data=$manifest_path/$fold 
-args+=" model.w2v_path"=$model_path 
-=======
->>>>>>> 8115ff5 (fixed space bug. fixed manifist)
 if [[ $resume == "true" ]] ; then
   #example ./model_outputs/xlsr2_300m/2944/outputs/2024-03-03/14-36-20/2944/checkpoint_last.pt
   restore_file=$(ls -t outputs/*/*/"$fold"/checkpoint_last.pt)
@@ -66,16 +59,6 @@ if [[ $resume == "true" ]] ; then
     exit 1
   fi
 
-<<<<<<< HEAD
-  args+=checkpoint.restore_file=$restore_file 
-fi
-
-args+=" common.wandb_project"=$wandb_project 
-args+=" checkpoint.save_dir"=./$fold 
-args+=" distributed_training.distributed_world_size=1 "
-args+="--config-dir $curr_dir/config/ "
-args+="--config-name $config_name"
-=======
 else
   restore_file=""
 fi
@@ -83,7 +66,6 @@ fi
 if [[ $dev == "true" ]]; then
     wandb_project=""
 fi
->>>>>>> 8115ff5 (fixed space bug. fixed manifist)
 
 
 fairseq-hydra-train \
