@@ -64,4 +64,4 @@ args+="--config-name $config_name"
 
 
 echo args: $args
-# fairseq-hydra-train $args
+fairseq-hydra-train $args
