@@ -19,7 +19,7 @@ task:
 
 
 dataset:
-  num_workers: 6
+  num_workers: 3
   max_tokens: 1280000
   skip_invalid_size_inputs_valid_test: true
   validate_after_updates: 10000
