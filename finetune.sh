@@ -59,7 +59,7 @@ fi
 args+=" common.wandb_project"="$wandb_project "
 args+=" checkpoint.save_dir"="./$fold "
 args+=" distributed_training.distributed_world_size=1 "
-args+="--config-dir $curr_dir/config/"
+args+="--config-dir $curr_dir/config/ "
 args+="--config-name $config_name"
 
 
