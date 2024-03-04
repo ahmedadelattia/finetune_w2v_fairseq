@@ -1,0 +1,12 @@
+w2v_name: xlsr2_300m
+model_path: /home/ahmed/Research/Projects/pretrain_w2v_fairseq/base_models/xlsr2_300m.pt
+wandb_project: finetune_w2v2_new_config_xlsr2_300m
+config_name: large
+Current directory: /home/ahmed/Research/Projects/finetune_w2v_fairseq/model_outputsxlsr2_300m/2944
+outdir_fold: ./model_outputsxlsr2_300m/2944
+Running on fold: 2944
+finetune.sh: line 35: =./2944: No such file or directory
+finetune.sh: line 50: [: missing `]'
+finetune.sh: line 64: /home/ahmed/Research/Projects/finetune_w2v_fairseq/config/: Is a directory
+finetune.sh: line 68: unexpected EOF while looking for matching `"'
+finetune.sh: line 71: syntax error: unexpected end of file

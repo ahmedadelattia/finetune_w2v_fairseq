@@ -9,6 +9,7 @@ common:
 checkpoint:
   no_epoch_checkpoints: true
   best_checkpoint_metric: wer
+  save_interval: 10
 
 task:
   _name: audio_finetuning
