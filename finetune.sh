@@ -67,6 +67,18 @@ if [[ $dev == "true" ]]; then
     wandb_project=""
 fi
 
+echo "fairseq-hydra-train \
+  model.w2v_path="$model_path" \
+  task.data="$manifest_path/$fold" \
+  checkpoint.save_dir="$save_dir" \
+  checkpoint.restore_file="$restore_file" \
+  common.wandb_project="$wandb_project" \
+  distributed_training.distributed_world_size=1 \
+  --config-dir $curr_dir/config/ \
+  --config-name $config_name \
+  "
+  
+
 
 fairseq-hydra-train \
   model.w2v_path="$model_path" \
