@@ -5,7 +5,8 @@ w2v_name=$1
 dataset=$2
 fold=$3
 resume=$4
-dev=$5
+lr=$5
+dev=$6
 echo dev: $dev
 
 outdir=./model_outputs/
@@ -47,14 +48,21 @@ echo "Running on fold: $fold"
 save_dir=$fold
 
 manifest_path=$curr_dir/manifest/$dataset
+
 if [[ $resume == "true" ]] ; then
   #example ./model_outputs/xlsr2_300m/2944/outputs/2024-03-03/14-36-20/2944/checkpoint_last.pt
   restore_file=$(ls -t outputs/*/*/"$fold"/checkpoint_last.pt)
-  restore_file=$(realpath $restore_file)
-  echo "restore_file: $restore_file"
+  #if multiple files are found, take the latest one alphabetically
+  if [[ $(echo "$restore_file" | wc -l) -gt 1 ]]; then
+    echo "Multiple files found, taking the latest one"
+    echo "$restore_file"
+    restore_file=$(echo "$restore_file" | head -n 1)
+  fi
+  restore_file=$(realpath "$restore_file")
+  echo "restore_file: "$restore_file""
 
   #assert that the file exists
-  if [[ ! -f $restore_file ]]; then
+  if [[ ! -f "$restore_file" ]]; then
     echo "File $restore_file does not exist"
     exit 1
   fi
@@ -67,12 +75,32 @@ if [[ $dev == "true" ]]; then
     wandb_project=""
 fi
 
+#if lr is not provided, use the default value
+if [[ -z $lr ]]; then
+  lr=0.0003
+fi
+
+echo "fairseq-hydra-train \
+  model.w2v_path="$model_path" \
+  task.data="$manifest_path/$fold" \
+  checkpoint.save_dir="$save_dir" \
+  checkpoint.restore_file="$restore_file" \
+  common.wandb_project="$wandb_project" \
+  optimization.lr=[$lr] \
+  distributed_training.distributed_world_size=1 \
+  --config-dir $curr_dir/config/ \
+  --config-name $config_name \
+  "
+  
+
 
 fairseq-hydra-train \
   model.w2v_path="$model_path" \
   task.data="$manifest_path/$fold" \
   checkpoint.save_dir="$save_dir" \
+  checkpoint.restore_file="$restore_file" \
   common.wandb_project="$wandb_project" \
+  optimization.lr=[$lr] \
   distributed_training.distributed_world_size=1 \
   --config-dir $curr_dir/config/ \
   --config-name $config_name \
