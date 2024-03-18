@@ -11,7 +11,7 @@ dev=$7
 echo dev: $dev
 
 
-if resume == "true" && [[ -n $restore_file ]]; then
+if $resume == "true" && [[ -n $restore_file ]]; then
   echo "Restore file restores from a given file. Resume resumes from the last checkpoint. Please provide a restore file or set resume to false"
   exit 1
 fi
@@ -57,7 +57,7 @@ save_dir=$fold
 manifest_path=$curr_dir/manifest/$dataset
 
 
-if [[-n $restore_file ]]; then
+if [[ -n $restore_file ]]; then
   echo "Restoring from file: $restore_file"
   #if restore_file ends with checkpoint_last.pt, warn the user to use checkpoint_best.pt instead
   if [[ $restore_file == *checkpoint_last.pt ]]; then
@@ -67,6 +67,7 @@ if [[-n $restore_file ]]; then
   if [[ ! -f "$restore_file" ]]; then
     echo "File $restore_file does not exist"
     exit 1
+  fi
 
 elif [[ $resume == "true" ]] ; then
   #example ./model_outputs/xlsr2_300m/2944/outputs/2024-03-03/14-36-20/2944/checkpoint_last.pt
@@ -123,5 +124,4 @@ fairseq-hydra-train \
   optimization.lr=[$lr] \
   distributed_training.distributed_world_size=1 \
   --config-dir $curr_dir/config/ \
-  --config-name $config_name \
-  
+  --config-name $config_name 
