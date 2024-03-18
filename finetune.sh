@@ -4,10 +4,17 @@ export HYDRA_FULL_ERROR=1
 w2v_name=$1
 dataset=$2
 fold=$3
-resume=$4
-lr=$5
-dev=$6
+restore_file=${4:-""}
+resume=${5:-false}
+lr=$6
+dev=$7
 echo dev: $dev
+
+
+if resume == "true" && [[ -n $restore_file ]]; then
+  echo "Restore file restores from a given file. Resume resumes from the last checkpoint. Please provide a restore file or set resume to false"
+  exit 1
+fi
 
 outdir=./model_outputs/
 if [[ $dev == "true" ]]; then
@@ -49,7 +56,19 @@ save_dir=$fold
 
 manifest_path=$curr_dir/manifest/$dataset
 
-if [[ $resume == "true" ]] ; then
+
+if [[-n $restore_file ]]; then
+  echo "Restoring from file: $restore_file"
+  #if restore_file ends with checkpoint_last.pt, warn the user to use checkpoint_best.pt instead
+  if [[ $restore_file == *checkpoint_last.pt ]]; then
+    echo "Warning: You are restoring from checkpoint_last.pt. It is recommended to use checkpoint_best.pt instead"
+  fi
+  #assert that the file exists
+  if [[ ! -f "$restore_file" ]]; then
+    echo "File $restore_file does not exist"
+    exit 1
+
+elif [[ $resume == "true" ]] ; then
   #example ./model_outputs/xlsr2_300m/2944/outputs/2024-03-03/14-36-20/2944/checkpoint_last.pt
   restore_file=$(ls -t outputs/*/*/"$fold"/checkpoint_last.pt)
   #if multiple files are found, take the latest one alphabetically
@@ -66,6 +85,7 @@ if [[ $resume == "true" ]] ; then
     echo "File $restore_file does not exist"
     exit 1
   fi
+
 
 else
   restore_file=""
