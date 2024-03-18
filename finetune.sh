@@ -115,23 +115,23 @@ echo "fairseq-hydra-train \
   
 if [[ $resume != "true" && -n $restore_file ]]; then
   echo "Transfer learning from file: $restore_file"
-fi
-echo "Warning: You are transfer learning from a fully trained model so the optimizer, lr_scheduler, and dataloader are reset"
-echo "If you want to resume training from the last trained checkpoint with the same configuration, set resume to true and do not provide a restore file"
+  echo "Warning: You are transfer learning from a fully trained model so the optimizer, lr_scheduler, and dataloader are reset"
+  echo "If you want to resume training from the last trained checkpoint with the same configuration, set resume to true and do not provide a restore file"
+
   fairseq-hydra-train \
-    model.w2v_path="$model_path" \
-    task.data="$manifest_path/$fold" \
-    checkpoint.save_dir="$save_dir" \
-    checkpoint.restore_file="$restore_file" \
-    checkpoint.reset_optimizer=true \
-    checkpoint.reset_lr_scheduler=true \
-    checkpoint.reset_dataloader=true \
-    common.wandb_project="$wandb_project" \
-    optimization.lr=[$lr] \
-    distributed_training.distributed_world_size=1 \
-    --config-dir $curr_dir/config/ \
-    --config-name $config_name \
-    --restore
+      model.w2v_path="$model_path" \
+      task.data="$manifest_path/$fold" \
+      checkpoint.save_dir="$save_dir" \
+      checkpoint.restore_file="$restore_file" \
+      checkpoint.reset_optimizer=false \
+      checkpoint.reset_dataloader=false \
+      checkpoint.reset_dataloader=true \
+      common.wandb_project="$wandb_project" \
+      optimization.lr=[$lr] \
+      distributed_training.distributed_world_size=1 \
+      --config-dir $curr_dir/config/ \
+      --config-name $config_name \
+      --restore
 
 elif [[ -n restore_file && resume == "true" ]]; then
   fairseq-hydra-train \
