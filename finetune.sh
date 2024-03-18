@@ -113,7 +113,7 @@ echo "fairseq-hydra-train \
   --config-name $config_name \
   "
   
-if $resume == "false" && [[ -n $restore_file ]]; then
+if $resume != "true" && [[ -n $restore_file ]]; then
 echo "Transfer learning from file: $restore_file"
 echo "Warning: You are transfer learning from a fully trained model so the optimizer, lr_scheduler, and dataloader are reset"
 echo "If you want to resume training from the last trained checkpoint with the same configuration, set resume to true and do not provide a restore file"
