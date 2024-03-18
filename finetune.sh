@@ -16,7 +16,6 @@ if $resume == "true" && [[ -n $restore_file ]]; then
   exit 1
 fi
 
-exit 1
 outdir=./model_outputs/
 if [[ $dev == "true" ]]; then
   outdir=./model_outputs_dev/
