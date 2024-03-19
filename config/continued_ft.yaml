@@ -49,7 +49,7 @@ optimizer:
 
 lr_scheduler:
   _name: tri_stage
-  phase_ratio: [0, 0, 1.0]
+  phase_ratio: [0.05, 0.05, 0.9]
   final_lr_scale: 0.05
 model:
   _name: wav2vec_ctc
