@@ -48,8 +48,9 @@ optimizer:
   adam_eps: 1e-08
 
 lr_scheduler:
-  _name: polynomial_decay
-
+  _name: tri_stage
+  phase_ratio: [0, 0, 1.0]
+  final_lr_scale: 0.05
 model:
   _name: wav2vec_ctc
   w2v_path: ???
