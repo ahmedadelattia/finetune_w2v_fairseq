@@ -125,7 +125,6 @@ if [[ $resume != "true" && -n $restore_file ]]; then
       distributed_training.distributed_world_size=1 \
       --config-dir $curr_dir/config/ \
       --config-name continued_ft \
-      --restore
 
 elif [[ -n restore_file && resume == "true" ]]; then
   fairseq-hydra-train \
@@ -138,7 +137,6 @@ elif [[ -n restore_file && resume == "true" ]]; then
     distributed_training.distributed_world_size=1 \
     --config-dir $curr_dir/config/ \
     --config-name large \
-    --restore
 
 else
   fairseq-hydra-train \
