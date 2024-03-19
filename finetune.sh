@@ -33,29 +33,12 @@ else
   model_path=$pwd/$model_path
   echo "model_path: $model_path"
 
+
+
   wandb_project=finetune_w2v2_new_config_$w2v_name
   outdir+=$w2v_name
 
 fi
-
-
-config_name=large
-echo w2v_name: $w2v_name
-echo model_path: $model_path
-echo wandb_project: $wandb_project
-echo config_name: $config_name
-#make directory for each fold
-outdir_fold=${outdir}/$fold
-mkdir -p "$outdir_fold"
-cd "$outdir_fold"
-echo "Current directory: $(pwd)"
-echo "outdir_fold: $outdir_fold"
-echo "dataset: $dataset"
-echo "Running on fold: $fold"
-save_dir=$fold
-
-manifest_path=$curr_dir/manifest/$dataset
-
 
 if [[ -n $restore_file ]]; then
   echo "Restoring from file: $restore_file"
@@ -68,6 +51,7 @@ if [[ -n $restore_file ]]; then
     echo "File $restore_file does not exist"
     exit 1
   fi
+  outdir+="continued_finetuning/"
 
 elif [[ $resume == "true" ]] ; then
   #example ./model_outputs/xlsr2_300m/2944/outputs/2024-03-03/14-36-20/2944/checkpoint_last.pt
@@ -92,6 +76,27 @@ else
   restore_file=""
 fi
 
+
+config_name=
+echo w2v_name: $w2v_name
+echo model_path: $model_path
+echo wandb_project: $wandb_project
+echo config_name: $config_name
+#make directory for each fold
+outdir_fold=${outdir}/$fold
+mkdir -p "$outdir_fold"
+cd "$outdir_fold"
+echo "Current directory: $(pwd)"
+echo "outdir_fold: $outdir_fold"
+echo "dataset: $dataset"
+echo "Running on fold: $fold"
+save_dir=$fold
+
+manifest_path=$curr_dir/manifest/$dataset
+
+
+
+
 if [[ $dev == "true" ]]; then
     wandb_project=""
 fi
@@ -101,17 +106,6 @@ if [[ -z $lr ]]; then
   lr=0.0003
 fi
 
-echo "fairseq-hydra-train \
-  model.w2v_path="$model_path" \
-  task.data="$manifest_path/$fold" \
-  checkpoint.save_dir="$save_dir" \
-  checkpoint.restore_file="$restore_file" \
-  common.wandb_project="$wandb_project" \
-  optimization.lr=[$lr] \
-  distributed_training.distributed_world_size=1 \
-  --config-dir $curr_dir/config/ \
-  --config-name $config_name \
-  "
   
 if [[ $resume != "true" && -n $restore_file ]]; then
   echo "Transfer learning from file: $restore_file"
@@ -123,14 +117,14 @@ if [[ $resume != "true" && -n $restore_file ]]; then
       task.data="$manifest_path/$fold" \
       checkpoint.save_dir="$save_dir" \
       checkpoint.restore_file="$restore_file" \
-      checkpoint.reset_optimizer=false \
-      checkpoint.reset_dataloader=false \
+      checkpoint.reset_optimizer=true \
+      checkpoint.reset_dataloader=true \
       checkpoint.reset_dataloader=true \
       common.wandb_project="$wandb_project" \
       optimization.lr=[$lr] \
       distributed_training.distributed_world_size=1 \
       --config-dir $curr_dir/config/ \
-      --config-name $config_name \
+      --config-name continued_ft \
       --restore
 
 elif [[ -n restore_file && resume == "true" ]]; then
@@ -143,7 +137,7 @@ elif [[ -n restore_file && resume == "true" ]]; then
     optimization.lr=[$lr] \
     distributed_training.distributed_world_size=1 \
     --config-dir $curr_dir/config/ \
-    --config-name $config_name \
+    --config-name large \
     --restore
 
 else
