@@ -1,3 +1,5 @@
 model_outputs
 __pycache__
 .trash
+cpt_models/xls2_300m_NCTE_1M_steps.pt
+.gitignore

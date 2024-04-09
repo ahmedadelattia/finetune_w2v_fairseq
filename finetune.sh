@@ -132,7 +132,6 @@ elif [[ -n restore_file && resume == "true" ]]; then
     task.data="$manifest_path/$fold" \
     checkpoint.save_dir="$save_dir" \
     checkpoint.restore_file="$restore_file" \
-    common.wandb_project="$wandb_project" \
     optimization.lr=[$lr] \
     distributed_training.distributed_world_size=1 \
     --config-dir $curr_dir/config/ \
@@ -144,7 +143,6 @@ else
     task.data="$manifest_path/$fold" \
     checkpoint.save_dir="$save_dir" \
     checkpoint.restore_file="$restore_file" \
-    common.wandb_project="$wandb_project" \
     optimization.lr=[$lr] \
     distributed_training.distributed_world_size=1 \
     --config-dir $curr_dir/config/ \
