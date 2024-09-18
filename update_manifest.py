@@ -42,7 +42,7 @@ def main():
         tsv_files = get_tsv_files(dataset_manifest)
         for tsv in tsv_files:
             print(f"Updating {tsv} with header {target_header_root}")
-            # update_manifest(tsv, target_header_root)
+            update_manifest(tsv, target_header_root)
     return
 
 
