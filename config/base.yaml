@@ -20,7 +20,7 @@ task:
 
 dataset:
   num_workers: 3
-  max_tokens: 5000000
+  max_tokens: 7680000
   skip_invalid_size_inputs_valid_test: true
   validate_after_updates: 9500
   validate_interval: 1
