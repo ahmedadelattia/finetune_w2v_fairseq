@@ -22,19 +22,27 @@ def get_header(current_header, target_header_root):
     raise ValueError("Header not found in current header")
 
 def get_tsv_files(dataset_manifest):
-    return glob.glob(os.path.join(dataset_manifest, "*/*.tsv"))
+    #tsv files either in the root or in the subfolders
+    
+    tsv_files = glob.glob(os.path.join(dataset_manifest, "*.tsv"))
+    subfolders = [f.path for f in os.scandir(dataset_manifest) if f.is_dir()]
+    for subfolder in subfolders:
+        tsv_files += glob.glob(os.path.join(subfolder, "*.tsv"))
+    return tsv_files
+
 
 def main():
     import sys
     manifest_root = "./manifest/"
     target_header_root = sys.argv[1] if len(sys.argv) > 1 else "/scr/aadel4/Data/"
-    datasets = ["NCTE", "NCTE_Full","Fall"]
+    datasets = os.listdir(manifest_root)
     for dataset in datasets:
         dataset_manifest = os.path.join(manifest_root, dataset)
         assert os.path.exists(dataset_manifest), f"Dataset manifest {dataset_manifest} does not exist"
         tsv_files = get_tsv_files(dataset_manifest)
         for tsv in tsv_files:
-            update_manifest(tsv, target_header_root)
+            print(f"Updating {tsv} with header {target_header_root}")
+            # update_manifest(tsv, target_header_root)
     return
 
 
