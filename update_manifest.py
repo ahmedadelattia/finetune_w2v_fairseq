@@ -28,7 +28,7 @@ def main():
     import sys
     manifest_root = "./manifest/"
     target_header_root = sys.argv[1] if len(sys.argv) > 1 else "/scr/aadel4/Data/"
-    datasets = ["NCTE", "Fall"]
+    datasets = ["NCTE", "NCTE_Full","Fall"]
     for dataset in datasets:
         dataset_manifest = os.path.join(manifest_root, dataset)
         assert os.path.exists(dataset_manifest), f"Dataset manifest {dataset_manifest} does not exist"
