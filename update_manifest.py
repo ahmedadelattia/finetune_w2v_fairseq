@@ -12,7 +12,9 @@ def update_manifest(manifest_tsv, target_header_root):
 
 
 def get_header(current_header, target_header_root):
-    if "NCTE" in current_header:
+    if "NCTE - Consolidated" in current_header:
+        return os.path.join(target_header_root, "NCTE - Consolidated", "Audio")
+    elif "NCTE" in current_header:
         return os.path.join(target_header_root, "NCTE", "Audio")
     elif "Fall" in current_header:
         return os.path.join(target_header_root, "Fall", "Audio")
