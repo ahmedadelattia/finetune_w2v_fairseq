@@ -19,8 +19,8 @@ task:
   labels: ltr
 
 dataset:
-  num_workers: 6
-  max_tokens: 7680000
+  num_workers: 3
+  max_tokens: 5000000
   skip_invalid_size_inputs_valid_test: true
   validate_after_updates: 9500
   validate_interval: 1
@@ -38,7 +38,7 @@ optimization:
   max_update: 20000
   lr: [0.0001]
   sentence_avg: true
-  update_freq: [4]
+  update_freq: [5]
 
 optimizer:
   _name: adam
