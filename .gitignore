@@ -3,3 +3,4 @@ __pycache__
 .trash
 cpt_models
 outputs
+nohup.out
