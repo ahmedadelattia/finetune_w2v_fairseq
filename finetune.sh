@@ -3,9 +3,9 @@
 export HYDRA_FULL_ERROR=1
 w2v_name=$1
 dataset=$2
-fold=$3
-restore_file=${4:-""}
-resume=${5:-false}
+resume=${3:-false}
+fold=$4
+restore_file=${5:-""}
 lr=$6
 dev=$7
 echo dev: $dev
@@ -66,7 +66,7 @@ if [[ -n $restore_file ]]; then
 
 elif [[ $resume == "true" ]] ; then
   #example ./model_outputs/xlsr2_300m/2944/outputs/2024-03-03/14-36-20/2944/checkpoint_last.pt
-  restore_file=$(ls -t outputs/*/*/"$save_dir"/checkpoint_359_10000.pt)
+  restore_file=$(ls -t outputs/*/*/"$save_dir"/checkpoint_last.pt)
   #if multiple files are found, take the latest one alphabetically
   if [[ $(echo "$restore_file" | wc -l) -gt 1 ]]; then
     echo "Multiple files found, taking the latest one"
