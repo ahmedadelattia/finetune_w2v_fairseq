@@ -96,7 +96,7 @@ if __name__ == "__main__":
         validation_files = ["2535", "2684", "2757", "4191"]
         validation_files = [f for f in files if f.split("_")[0] in validation_files]
         train_files      = [f for f in files if f not in validation_files]
-        print(len(train_files), len(validation_files), len(files));exit()
+        # print(len(train_files), len(validation_files), len(files));exit()
         train_wavs, train_samples, train_root, train_wav2trans = [], [], [], dict()
         valid_wavs, valid_samples, valid_root, valid_wav2trans = [], [], [], dict()        
         #no cross validation in full dataset
