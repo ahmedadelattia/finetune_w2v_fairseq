@@ -11,10 +11,10 @@ dev=$7
 echo dev: $dev
 echo restore_file: $restore_file
 
-if $resume == "true" && [[ -n $restore_file ]]; then
-  echo "Restore file restores from a given file. Resume resumes from the last checkpoint. Please provide a restore file or set resume to false"
-  exit 1
-fi
+# if $resume == "true" && [[ -n $restore_file ]]; then
+#   echo "Restore file restores from a given file. Resume resumes from the last checkpoint. Please provide a restore file or set resume to false"
+#   exit 1
+# fi
 
 outdir=./model_outputs/
 if [[ $dev == "true" ]]; then
