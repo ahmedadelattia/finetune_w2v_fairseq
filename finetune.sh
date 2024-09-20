@@ -28,7 +28,7 @@ if [[ $w2v_name == *"/"* ]]; then
   wandb_project=finetune_w2v2_continued_pretraining
   outdir+=continued_pretraining/
 else
-  model_path=$curr_dir/../pretrain_w2v_fairseq/base_models/$w2v_name.pt
+  model_path=$curr_dir/cpt_models/$w2v_name.pt
   #get absolute path
   model_path=$pwd/$model_path
   echo "model_path: $model_path"
