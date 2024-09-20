@@ -19,7 +19,7 @@ elif dataset == "Fall":
     ext = ".wav"
     manifest += "Fall/"
     
-elif dataset == "NCTE_full":
+elif dataset == "NCTE_Full":
     p2root = "./../../Data/NCTE - Consolidated/"
     ext = ".wav"
     manifest += "NCTE_Full/"
@@ -88,7 +88,7 @@ def write_manifest(wavs, samples, root, wav2trans, manifest,split_name, ext = ex
 
 
 if __name__ == "__main__":
-    if dataset == "NCTE_full":
+    if dataset == "NCTE_Full":
         dataset_lens = []
         #create train valid splits for x-validation. For each split, create a manifest subfolder
         files = [f for f in os.listdir(os.path.join(p2root, "Audio"))]
@@ -96,7 +96,6 @@ if __name__ == "__main__":
         validation_files = ["2535", "2684", "2757", "4191"]
         validation_files = [f for f in files if f.split("_")[0] in validation_files]
         train_files      = [f for f in files if f not in validation_files]
-        # print(len(train_files), len(validation_files), len(files));exit()
         train_wavs, train_samples, train_root, train_wav2trans = [], [], [], dict()
         valid_wavs, valid_samples, valid_root, valid_wav2trans = [], [], [], dict()        
         #no cross validation in full dataset
