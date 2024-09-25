@@ -23,6 +23,10 @@ elif dataset == "NCTE_Full":
     p2root = "./../../Data/NCTE - Consolidated/"
     ext = ".wav"
     manifest += "NCTE_Full/"
+elif dataset == "Librispeech":
+    p2root = "/media/ahmed/DATA 2/Research/Data/Librispeech/Noisy"
+    ext = ".flac"
+    manifest += "Librispeech_Noise/"
     
     
 normalize = EnglishTextNormalizer()
@@ -31,12 +35,14 @@ os.makedirs(manifest,exist_ok=True)
 charset = set()
 
 
-def parse_folder(folder,search_pattern = None, p2root = p2root, ext = ext, max_duration = 1000000000000000000000):
-    if search_pattern is None:
-        search_pattern = os.path.join(p2root,"Audio", folder,'*'+ext)
+def parse_folder(folder,search_pattern = None, p2root = p2root, ext = ext, audio_dir = "Audio", max_duration = 1000000000000000000000):
+    wavs = []
     print(search_pattern)
-    wavs = glob.glob(search_pattern, recursive=True)
-    wavs = sorted(wavs)
+    for r, d, f in os.walk(search_pattern):
+        for file in f:
+            if file.endswith(ext):
+                wavs.append(os.path.join(r, file))
+                
  
 
     sr = sf.info(wavs[0]).samplerate
@@ -49,21 +55,21 @@ def parse_folder(folder,search_pattern = None, p2root = p2root, ext = ext, max_d
         if sum(samples)/sr > max_duration*60:
             break
     wavs = wavs[:n+1]
-            
     assert len(wavs) == len(samples), (len(wavs), len(samples))
     print("Found",len(samples),"samples in folder",folder)
-    root = search_pattern.split("/*")[0]
-    root, subdir = os.path.dirname(root), os.path.split(root)[-1]
-    wavs = [w.split(root+"/")[-1] for w in wavs]
-
+    
+    wavs = [os.path.realpath(w) for w in wavs]
     wav2trans = dict()
+    
     with open(os.path.join(p2root,"Transcripts",folder+".json")) as transcrip:
         lines = transcrip.read().strip().split('\n')
+    print("Found",len(lines),"transcripts in folder",folder)
     for line in (lines):
         line = json.loads(line)
-        
-        if "/".join(line["audio_path"].split("/")[-2:]) not in wavs:
+
+        if os.path.realpath(line["audio_path"]) not in wavs:
             print("Skipping",line["audio_path"])
+            # print(os.path.realpath(line["audio_path"]));exit()
             continue
         file, trans = line['audio_path'], normalize(line['text'])
         file = "/".join(file.split("/")[-2:]).replace(ext,"")
@@ -72,19 +78,23 @@ def parse_folder(folder,search_pattern = None, p2root = p2root, ext = ext, max_d
         charset.update(trans.replace(" ","|"))
     
     assert len(wavs) == len(wav2trans), (len(wavs), len(wav2trans))
-    return wavs, samples, root, wav2trans, charset
+    return wavs, samples, wav2trans, charset
         
-def write_manifest(wavs, samples, root, wav2trans, manifest,split_name, ext = ext):
+def write_manifest(wavs, samples, wav2trans, manifest,split_name, ext = ext):
     os.makedirs(manifest,exist_ok=True)
+    
+    #extract root which is the common path for all files
+    root = os.path.commonpath(wavs)
+    wavs_rel = [os.path.relpath(w,root) for w in wavs]
     with open(os.path.join(manifest,split_name+".tsv"),'w') as tsv, \
         open(os.path.join(manifest,split_name+".wrd"),'w') as wrd, \
         open(os.path.join(manifest,split_name+".ltr"),'w') as ltr:
         root = os.path.abspath(root)
         print(root,file=tsv)
-        for n,d in zip(wavs,samples):
-            print(n,d,sep='\t',file=tsv)
-            print(wav2trans[n.replace(ext,"")],file=wrd)
-            print(" ".join(list(wav2trans[n.replace(ext,"")].replace(" ", "|"))) + " |", file=ltr)
+        for n_rel, n,d in zip(wavs_rel, wavs,samples):
+            print(n_rel,d,sep='\t',file=tsv)
+            print(wav2trans["/".join(n.split("/")[-2:]).replace(ext,"")],file=wrd)
+            print(" ".join(list(wav2trans["/".join(n.split("/")[-2:]).replace(ext,"")].replace(" ", "|"))) + " |", file=ltr)
 
 
 if __name__ == "__main__":
@@ -96,6 +106,7 @@ if __name__ == "__main__":
         validation_files = ["2535", "2684", "2757", "4191"]
         validation_files = [f for f in files if f.split("_")[0] in validation_files]
         train_files      = [f for f in files if f not in validation_files]
+        train_files = [f for f in train_files if f.split("_")[0] in ["144", "622", "2619", "2709", "2944", "4724"]]
         train_wavs, train_samples, train_root, train_wav2trans = [], [], [], dict()
         valid_wavs, valid_samples, valid_root, valid_wav2trans = [], [], [], dict()        
         #no cross validation in full dataset
@@ -107,7 +118,6 @@ if __name__ == "__main__":
             assert root == valid_root[0]
         valid_root = valid_root[0]
         write_manifest(valid_wavs, valid_samples, valid_root, valid_wav2trans, f"{manifest}", "valid")
-        
         valid_len = len(valid_wavs)
         for train_folder in tqdm.tqdm(train_files):
             wavs, samples, root, wav2trans, charset = parse_folder(train_folder)
@@ -122,13 +132,14 @@ if __name__ == "__main__":
             for e,c in enumerate(charset):
                 print(c,e,file=dct)
         
-    else:
+    elif dataset == "NCTE":
         dataset_lens = []
         #create train valid splits for x-validation. For each split, create a manifest subfolder
         train_files = ["144", "622", "2619", "2709", "2944", "4724"]
         for valid_folder in tqdm.tqdm(train_files):
             if valid_folder == "Transcripts":
                 continue
+            
             wavs, samples, root, wav2trans, charset = parse_folder(valid_folder)
             write_manifest(wavs, samples, root, wav2trans, f"{manifest}/fold_{valid_folder}", "valid")
             train_wavs, train_samples, train_root, train_wav2trans = [], [], [], dict()
@@ -165,3 +176,35 @@ if __name__ == "__main__":
                 continue
             wavs, samples, root, wav2trans, charset = parse_folder(folder)
             write_manifest(wavs, samples, root, wav2trans, f"{manifest}/fold_{folder}", "test")
+    elif dataset == "Librispeech":
+        snrs = ["-5", "0", "5", "10", "15", "20"]
+        train_files = ["train-clean-100", "train-clean-360", "train-other-500"]
+        valid_files = ["dev-clean"]
+        
+        train_files = [f"{snr}/{f}" for snr in snrs for f in train_files]
+        valid_files = [f"{snr}/{f}" for snr in snrs for f in valid_files]
+        train_wavs, train_samples, train_root, train_wav2trans = [], [], [], dict()
+        valid_wavs, valid_samples, valid_root, valid_wav2trans = [], [], [], dict()
+        for folder in train_files:
+            #audio files exist in this structure
+            #{p2root}/{snr}/train-clean-100/LibriSpeech/train-clean-100/
+            search_pattern = os.path.join(p2root, folder, "LibriSpeech", folder.split("/")[-1])
+            wavs, samples, wav2trans, charset = parse_folder(folder, search_pattern= search_pattern)
+            train_wavs.extend(wavs); train_samples.extend(samples); train_wav2trans.update(wav2trans)
+        write_manifest(train_wavs, train_samples, train_wav2trans, f"{manifest}", "train")
+        
+        for folder in valid_files:
+            search_pattern = os.path.join(p2root, folder, "LibriSpeech", folder.split("/")[-1])
+            wavs, samples, wav2trans, charset = parse_folder(folder, search_pattern=search_pattern)
+            valid_wavs.extend(wavs); valid_samples.extend(samples);  valid_wav2trans.update(wav2trans)
+            
+        write_manifest(valid_wavs, valid_samples, valid_wav2trans, f"{manifest}", "valid")
+        
+        charset = sorted(list(charset))
+        with open(os.path.join(manifest,"dict.ltr.txt"),'w') as dct:
+            for e,c in enumerate(charset):
+                print(c,e,file=dct)
+                
+    
+           
+            
