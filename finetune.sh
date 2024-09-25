@@ -3,11 +3,12 @@
 export HYDRA_FULL_ERROR=1
 w2v_name=$1
 dataset=$2
-resume=${3:-false}
-fold=$4
-restore_file=${5:-""}
-lr=$6
-dev=$7
+config=${3:-base}
+resume=${4:-false}
+fold=$5
+restore_file=${6:-""}
+lr=$7
+dev=$8
 echo dev: $dev
 echo restore_file: $restore_file
 
