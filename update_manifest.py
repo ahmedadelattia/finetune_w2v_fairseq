@@ -5,6 +5,8 @@ def update_manifest(manifest_tsv, target_header_root):
     with open(manifest_tsv, 'r') as f:
         lines = f.readlines()
     target_header = get_header(lines[0], target_header_root) 
+    if target_header is None:
+        return
     lines[0] = target_header + "\n"
     with open(manifest_tsv, 'w') as f:
         f.writelines(lines)
@@ -21,7 +23,8 @@ def get_header(current_header, target_header_root):
     elif "Librispeech/Noisy" in current_header:
         return os.path.join(target_header_root, "Fall", "Audio")
 
-    raise ValueError(f"Header {current_header} not found in current header")
+    print(f"Header {current_header} not found in current header")
+    return None
 
 def get_tsv_files(dataset_manifest):
     #tsv files either in the root or in the subfolders
