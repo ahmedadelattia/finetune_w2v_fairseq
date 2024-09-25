@@ -124,7 +124,7 @@ if [[ $resume != "true" && -n $restore_file ]]; then
   echo "If you want to resume training from the last trained checkpoint with the same configuration, set resume to true and do not provide a restore file"
 
   fairseq-hydra-train \
-      model.w2v_path="$model_path" \
+      model.w2v_path=/home/ahmed/Research/Projects/finetune_w2v_fairseq/cpt_models/w2v_robust_1M.pt \
       task.data="$manifest_path/$fold" \
       checkpoint.save_dir="$save_dir" \
       checkpoint.restore_file="$restore_file" \
@@ -135,7 +135,7 @@ if [[ $resume != "true" && -n $restore_file ]]; then
       optimization.lr=[$lr] \
       distributed_training.distributed_world_size=1 \
       --config-dir $curr_dir/config/ \
-      --config-name continued_ft \
+      --config-name $config_name \
 
 elif [[ -n restore_file && resume == "true" ]]; then
   fairseq-hydra-train \
@@ -146,7 +146,7 @@ elif [[ -n restore_file && resume == "true" ]]; then
     optimization.lr=[$lr] \
     distributed_training.distributed_world_size=1 \
     --config-dir $curr_dir/config/ \
-    --config-name large \
+    --config-name $config_name \
 
 else
   fairseq-hydra-train \

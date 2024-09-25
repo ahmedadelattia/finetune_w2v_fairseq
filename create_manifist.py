@@ -23,11 +23,14 @@ elif dataset == "NCTE_Full":
     p2root = "./../../Data/NCTE - Consolidated/"
     ext = ".wav"
     manifest += "NCTE_Full/"
-elif dataset == "Librispeech":
+elif dataset == "Librispeech_Noise":
     p2root = "/media/ahmed/DATA 2/Research/Data/Librispeech/Noisy"
     ext = ".flac"
     manifest += "Librispeech_Noise/"
-    
+elif dataset == "Librispeech":
+    p2root = "/media/ahmed/DATA 2/Research/Data/Librispeech/"
+    ext = ".flac"
+    manifest += "Librispeech/"   
     
 normalize = EnglishTextNormalizer()
 os.makedirs(manifest,exist_ok=True)
@@ -74,6 +77,8 @@ def parse_folder(folder,search_pattern = None, p2root = p2root, ext = ext, audio
         file, trans = line['audio_path'], normalize(line['text'])
         file = "/".join(file.split("/")[-2:]).replace(ext,"")
         # file = os.path.join(subdir,file)
+        if file in wav2trans.keys():
+            raise ValueError(f"Duplicate file {file} in {folder}")
         wav2trans[file] = trans
         charset.update(trans.replace(" ","|"))
     
@@ -176,13 +181,47 @@ if __name__ == "__main__":
                 continue
             wavs, samples, root, wav2trans, charset = parse_folder(folder)
             write_manifest(wavs, samples, root, wav2trans, f"{manifest}/fold_{folder}", "test")
-    elif dataset == "Librispeech":
+    elif dataset == "Librispeech_Noise":
         snrs = ["-5", "0", "5", "10", "15", "20"]
         train_files = ["train-clean-100", "train-clean-360", "train-other-500"]
         valid_files = ["dev-clean"]
+        test_files = ["test-clean"]
         
         train_files = [f"{snr}/{f}" for snr in snrs for f in train_files]
         valid_files = [f"{snr}/{f}" for snr in snrs for f in valid_files]
+        test_files = [f"{snr}/{f}" for snr in snrs for f in test_files]
+        # train_wavs, train_samples, train_root, train_wav2trans = [], [], [], dict()
+        # valid_wavs, valid_samples, valid_root, valid_wav2trans = [], [], [], dict()
+        # for folder in train_files:
+        #     #audio files exist in this structure
+        #     #{p2root}/{snr}/train-clean-100/LibriSpeech/train-clean-100/
+        #     search_pattern = os.path.join(p2root, folder, "LibriSpeech", folder.split("/")[-1])
+        #     wavs, samples, wav2trans, charset = parse_folder(folder, search_pattern= search_pattern)
+        #     train_wavs.extend(wavs); train_samples.extend(samples); train_wav2trans.update(wav2trans)
+        # write_manifest(train_wavs, train_samples, train_wav2trans, f"{manifest}", "train")
+        
+        # for folder in valid_files:
+        #     search_pattern = os.path.join(p2root, folder, "LibriSpeech", folder.split("/")[-1])
+        #     wavs, samples, wav2trans, charset = parse_folder(folder, search_pattern=search_pattern)
+        #     valid_wavs.extend(wavs); valid_samples.extend(samples);  valid_wav2trans.update(wav2trans)
+            
+        # write_manifest(valid_wavs, valid_samples, valid_wav2trans, f"{manifest}", "valid")
+        
+        # charset = sorted(list(charset))
+        # with open(os.path.join(manifest,"dict.ltr.txt"),'w') as dct:
+        #     for e,c in enumerate(charset):
+        #         print(c,e,file=dct)
+       
+        for folder in test_files:
+            search_pattern = os.path.join(p2root, folder)
+            wavs, samples, wav2trans, charset = parse_folder(folder, search_pattern=search_pattern)
+            
+            write_manifest(wavs, samples, wav2trans, f"{manifest}/test", f"test_snr_{folder.split('/')[0]}")
+
+    elif dataset == "Librispeech":
+        train_files = ["train-clean-100", "train-clean-360", "train-other-500"]
+        valid_files = ["dev-clean"]
+        
         train_wavs, train_samples, train_root, train_wav2trans = [], [], [], dict()
         valid_wavs, valid_samples, valid_root, valid_wav2trans = [], [], [], dict()
         for folder in train_files:
@@ -204,7 +243,8 @@ if __name__ == "__main__":
         with open(os.path.join(manifest,"dict.ltr.txt"),'w') as dct:
             for e,c in enumerate(charset):
                 print(c,e,file=dct)
-                
+
+                    
     
            
             
