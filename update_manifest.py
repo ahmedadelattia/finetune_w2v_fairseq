@@ -22,6 +22,8 @@ def get_header(current_header, target_header_root):
         return os.path.join(target_header_root, "Fall", "Audio")
     elif "Librispeech/Noisy" in current_header:
         return os.path.join(target_header_root, "Librispeech", "Noisy")
+    elif "Librispeech" in current_header:
+        return os.path.join(target_header_root, "Librispeech")
 
     print(f"Header {current_header} not found in current header")
     return None
