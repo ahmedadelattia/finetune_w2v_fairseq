@@ -18,7 +18,9 @@ def get_header(current_header, target_header_root):
         return os.path.join(target_header_root, "NCTE", "Audio")
     elif "Fall" in current_header:
         return os.path.join(target_header_root, "Fall", "Audio")
-    
+    elif "Librispeech/Noisy" in current_header:
+        return os.path.join(target_header_root, "Fall", "Audio")
+
     raise ValueError("Header not found in current header")
 
 def get_tsv_files(dataset_manifest):
