@@ -89,7 +89,7 @@ else
 fi
 
 
-config_name=base
+config_name=$config
 echo w2v_name: $w2v_name
 echo model_path: $model_path
 echo wandb_project: $wandb_project
