@@ -133,7 +133,7 @@ if [[ $resume != "true" && -n $restore_file ]]; then
       checkpoint.reset_dataloader=true \
       common.wandb_project="$wandb_project" \
       optimization.lr=[$lr] \
-      distributed_training.distributed_world_size=6 \
+      distributed_training.distributed_world_size=8 \
       --config-dir $curr_dir/config/ \
       --config-name $config_name \
 
@@ -144,7 +144,7 @@ elif [[ -n restore_file && resume == "true" ]]; then
     checkpoint.save_dir="$save_dir" \
     checkpoint.restore_file="$restore_file" \
     optimization.lr=[$lr] \
-    distributed_training.distributed_world_size=6 \
+    distributed_training.distributed_world_size=8 \
     --config-dir $curr_dir/config/ \
     --config-name $config_name \
 
@@ -154,7 +154,7 @@ else
     task.data="$manifest_path/$fold" \
     checkpoint.save_dir="$save_dir" \
     checkpoint.restore_file="$restore_file" \
-    distributed_training.distributed_world_size=6 \
+    distributed_training.distributed_world_size=8 \
     --config-dir $curr_dir/config/ \
     --config-name $config_name 
 fi
