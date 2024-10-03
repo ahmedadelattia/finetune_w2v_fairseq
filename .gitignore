@@ -8,3 +8,4 @@ manifest/Librispeech_Noise/train.ltr
 manifest/Librispeech_Noise/train.tsv
 manifest/Librispeech_Noise/train.wrd
 manifest/Librispeech/
+cleanup.py
