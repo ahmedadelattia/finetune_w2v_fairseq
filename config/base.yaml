@@ -5,8 +5,7 @@ common:
   wandb_project: w2v2-cpt-transfer_finetuning
 
 checkpoint:
-  save_interval: 1
-  save_interval_updates: 5000
+  save_interval_updates: 1000
   keep_interval_updates: 1
   no_epoch_checkpoints: true
   best_checkpoint_metric: wer
