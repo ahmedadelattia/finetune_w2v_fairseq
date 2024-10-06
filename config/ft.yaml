@@ -4,7 +4,7 @@ common:
   log_interval: 10
   wandb_project: w2v2-cpt-transfer_finetuning
 
-checkpoint:mkdi
+checkpoint:
   save_interval_updates: 1000
   keep_interval_updates: 1
   no_epoch_checkpoints: true
