@@ -27,7 +27,7 @@ dataset:
 
 distributed_training:
   ddp_backend: no_c10d
-  distributed_world_size: 1
+  distributed_world_size: 8
 
 criterion:
   _name: ctc

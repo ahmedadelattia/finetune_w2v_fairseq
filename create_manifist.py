@@ -11,18 +11,22 @@ dataset = sys.argv[1] if len(sys.argv) > 1 else "NCTE"
 manifest = "./manifest/"
 
 if dataset == "NCTE":
-    p2root = "../../Data/NCTE/NCTE_Noise_turn_based"
+    p2root = "/media/ahmed/DATA 1/Research/Data/NCTE/NCTE_Noise_turn_based"
     ext = ".wav"
     manifest += "NCTE/"    
 elif dataset == "Fall":
-    p2root = "../../Data/Fall Pilot/Noisy Audio Chunks/"
+    p2root = "/media/ahmed/DATA 1/Research/Data/Fall Pilot/Noisy Audio Chunks/"
     ext = ".wav"
     manifest += "Fall/"
     
 elif dataset == "NCTE_Full":
-    p2root = "./../../Data/NCTE - Consolidated/"
+    p2root = "/media/ahmed/DATA 1/Research/Data/NCTE - Consolidated/"
     ext = ".wav"
     manifest += "NCTE_Full/"
+elif dataset == "NCTE_2000hr":
+    p2root = "/media/ahmed/DATA 1/Research/Data/NCTE_2000hr/"
+    ext = ".wav"
+    manifest += "NCTE_2000hr/"
 elif dataset == "Librispeech_Noise":
     p2root = "/media/ahmed/DATA 2/Research/Data/Librispeech/Noisy"
     ext = ".flac"
@@ -40,7 +44,6 @@ charset = set()
 
 def parse_folder(folder,search_pattern = None, p2root = p2root, ext = ext, audio_dir = "Audio", max_duration = 1000000000000000000000):
     wavs = []
-    print(search_pattern)
     for r, d, f in os.walk(search_pattern):
         for file in f:
             if file.endswith(ext):
@@ -181,6 +184,58 @@ if __name__ == "__main__":
                 continue
             wavs, samples, root, wav2trans, charset = parse_folder(folder)
             write_manifest(wavs, samples, root, wav2trans, f"{manifest}/fold_{folder}", "test")
+            
+    
+    elif dataset == "NCTE_2000hr":
+        dataset_lens = []
+        #list of files to remove to avoid overlap between different datasets
+        files_to_remove = os.listdir("/home/ahmed/Research_Data_1/Data/NCTE - Consolidated/Audio_alt")
+        #set seed for reproducibility
+        import numpy as np
+        np.random.seed(0)
+        files = os.listdir(os.path.join(p2root, "Audio"))
+        #remove files that are in the files_to_remove list
+        files = [f for f in files if f not in files_to_remove]
+        #create train, valid, test splits
+        train_files = np.random.choice(files, size = int(0.8*len(files)), replace = False)
+        validation_files = np.random.choice([f for f in files if f not in train_files], size = int(0.1*len(files)), replace = False)
+        test_files = [f for f in files if f not in train_files and f not in validation_files]
+        
+        train_wavs, train_samples, train_root, train_wav2trans = [], [], [], dict()
+        valid_wavs, valid_samples, valid_root, valid_wav2trans = [], [], [], dict()        
+        test_wavs, test_samples, test_root, test_wav2trans = [], [], [], dict() 
+        charset = set()
+        #no cross validation in full dataset
+        for valid_folder in tqdm.tqdm(validation_files):
+            search_pattern = os.path.join(p2root, "Audio", valid_folder)
+            wavs, samples, wav2trans, charset_valid = parse_folder(valid_folder, search_pattern=search_pattern)
+            valid_wavs.extend(wavs); valid_samples.extend(samples);  valid_wav2trans.update(wav2trans)
+            charset.update(charset_valid)
+
+        write_manifest(valid_wavs, valid_samples, valid_wav2trans, f"{manifest}", "valid")
+        valid_len = len(valid_wavs)
+        
+        for test_folder in tqdm.tqdm(test_files):
+            search_pattern = os.path.join(p2root, "Audio", test_folder)
+            wavs, samples, wav2trans, charset_test = parse_folder(test_folder, search_pattern=search_pattern)
+            test_wavs.extend(wavs); test_samples.extend(samples); test_wav2trans.update(wav2trans)
+            charset.update(charset_test)
+        write_manifest(test_wavs, test_samples, test_wav2trans, f"{manifest}", "valid")
+        test_len = len(test_wavs)
+       
+        for train_folder in tqdm.tqdm(train_files):
+            search_pattern = os.path.join(p2root, "Audio", train_folder)
+            wavs, samples, wav2trans, charset_train = parse_folder(train_folder, search_pattern=search_pattern)
+            train_wavs.extend(wavs); train_samples.extend(samples); train_wav2trans.update(wav2trans)
+            charset.update(charset_train)
+        
+        write_manifest(train_wavs, train_samples, train_wav2trans, f"{manifest}", "train")
+        
+        charset = sorted(list(charset))
+        with open(os.path.join(manifest,"dict.ltr.txt"),'w') as dct:
+            for e,c in enumerate(charset):
+                print(c,e,file=dct)
+                
     elif dataset == "Librispeech_Noise":
         snrs = ["-5", "0", "5", "10", "15", "20"]
         train_files = ["train-clean-100", "train-clean-360", "train-other-500"]
