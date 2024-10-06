@@ -5,10 +5,10 @@ common:
   wandb_project: w2v2-cpt-transfer_finetuning
 
 checkpoint:
-  save_interval_updates: 1000
-  keep_interval_updates: 1
   no_epoch_checkpoints: true
   best_checkpoint_metric: wer
+  save_interval_updates: 1000
+  keep_interval_updates: 1
 
 task:
   _name: audio_finetuning
@@ -21,8 +21,9 @@ dataset:
   num_workers: 3
   max_tokens: 7680000
   skip_invalid_size_inputs_valid_test: true
-  validate_interval: 400
-  validate_interval_updates: 400
+  validate_interval: 1
+  # validate_interval_updates: 1000
+
 
 distributed_training:
   ddp_backend: no_c10d
