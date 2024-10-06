@@ -71,6 +71,8 @@ elif [[ $resume == "true" ]] ; then
   #if multiple files are found, take the latest one alphabetically
   if [[ $(echo "$restore_file" | wc -l) -gt 1 ]]; then
     echo "Multiple files found, taking the latest one"
+    #sort the files alphabetically and take the first one
+    restore_file=$(echo "$restore_file" | sort)
     echo "$restore_file"
     restore_file=$(echo "$restore_file" | head -n 1)
   fi
