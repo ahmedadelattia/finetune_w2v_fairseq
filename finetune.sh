@@ -126,7 +126,7 @@ if [[ $resume != "true" && -n $restore_file ]]; then
   echo "If you want to resume training from the last trained checkpoint with the same configuration, set resume to true and do not provide a restore file"
 
   fairseq-hydra-train \
-      model.w2v_path=/home/ahmed/Research/Projects/finetune_w2v_fairseq/cpt_models/w2v_robust_1M.pt \
+      model.w2v_path="$model_path" \
       task.data="$manifest_path/$fold" \
       checkpoint.save_dir="$save_dir" \
       checkpoint.restore_file="$restore_file" \
