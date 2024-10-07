@@ -115,9 +115,9 @@ if [[ $dev == "true" ]]; then
 fi
 
 #if lr is not provided, use the default value
-if [[ -z $lr ]]; then
-  lr=0.0003
-fi
+# if [[ -z $lr ]]; then
+#   lr=0.0003
+# fi
 
   
 if [[ $resume != "true" && -n $restore_file ]]; then
@@ -134,7 +134,6 @@ if [[ $resume != "true" && -n $restore_file ]]; then
       checkpoint.reset_lr_scheduler=true \
       checkpoint.reset_dataloader=true \
       common.wandb_project="$wandb_project" \
-      optimization.lr=[$lr] \
       distributed_training.distributed_world_size=8 \
       --config-dir $curr_dir/config/ \
       --config-name $config_name \
@@ -145,7 +144,6 @@ elif [[ -n restore_file && resume == "true" ]]; then
     task.data="$manifest_path/$fold" \
     checkpoint.save_dir="$save_dir" \
     checkpoint.restore_file="$restore_file" \
-    optimization.lr=[$lr] \
     distributed_training.distributed_world_size=8 \
     --config-dir $curr_dir/config/ \
     --config-name $config_name \
