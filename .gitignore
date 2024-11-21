@@ -9,3 +9,5 @@ manifest/Librispeech_Noise/train.tsv
 manifest/Librispeech_Noise/train.wrd
 manifest/Librispeech/
 cleanup.py
+off-the-shelf-models/backup.pt
+off-the-shelf-models/w2v_large_lv_fsh_swbd_cv_ftls960_updated.pt

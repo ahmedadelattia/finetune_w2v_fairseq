@@ -19,10 +19,14 @@ elif dataset == "Fall":
     ext = ".wav"
     manifest += "Fall/"
     
-elif dataset == "NCTE_Full":
+elif dataset == "NCTE_Full" or dataset == "NCTE_Full_all_mics":
     p2root = "/media/ahmed/DATA 1/Research/Data/NCTE - Consolidated/"
     ext = ".wav"
-    manifest += "NCTE_Full/"
+    if dataset == "NCTE_Full":
+        manifest += "NCTE_Full/"
+    else:
+        manifest += "NCTE_Full_all_mics/"
+        p2root += "All_Mics/"
 elif dataset == "NCTE_2000hr":
     p2root = "/media/ahmed/DATA 1/Research/Data/NCTE_2000hr/"
     ext = ".wav"
@@ -34,7 +38,8 @@ elif dataset == "Librispeech_Noise":
 elif dataset == "Librispeech":
     p2root = "/media/ahmed/DATA 2/Research/Data/Librispeech/"
     ext = ".flac"
-    manifest += "Librispeech/"   
+    manifest += "Librispeech/"
+       
     
 normalize = EnglishTextNormalizer()
 os.makedirs(manifest,exist_ok=True)
@@ -45,6 +50,7 @@ charset = set()
 def parse_folder(folder,search_pattern = None, p2root = p2root, ext = ext, audio_dir = "Audio", max_duration = 1000000000000000000000):
     wavs = []
     for r, d, f in os.walk(search_pattern):
+        f = sorted(f)
         for file in f:
             if file.endswith(ext):
                 wavs.append(os.path.join(r, file))
@@ -106,34 +112,37 @@ def write_manifest(wavs, samples, wav2trans, manifest,split_name, ext = ext):
 
 
 if __name__ == "__main__":
-    if dataset == "NCTE_Full":
+    if dataset == "NCTE_Full" or dataset == "NCTE_Full_all_mics":
         dataset_lens = []
         #create train valid splits for x-validation. For each split, create a manifest subfolder
+
+        
         files = [f for f in os.listdir(os.path.join(p2root, "Audio"))]
 
         validation_files = ["2535", "2684", "2757", "4191"]
+        
         validation_files = [f for f in files if f.split("_")[0] in validation_files]
+        print("Validation files",validation_files)
         train_files      = [f for f in files if f not in validation_files]
-        train_files = [f for f in train_files if f.split("_")[0] in ["144", "622", "2619", "2709", "2944", "4724"]]
+        # train_files = [f for f in train_files if f.split("_")[0] in ["144", "622", "2619", "2709", "2944", "4724"]]
         train_wavs, train_samples, train_root, train_wav2trans = [], [], [], dict()
-        valid_wavs, valid_samples, valid_root, valid_wav2trans = [], [], [], dict()        
+        valid_wavs, valid_samples, valid_root, valid_wav2trans = [], [], [], dict() 
+               
         #no cross validation in full dataset
         for valid_folder in tqdm.tqdm(validation_files):
-            wavs, samples, root, wav2trans, charset = parse_folder(valid_folder)
-            write_manifest(wavs, samples, root, wav2trans, f"{manifest}", f"valid_{valid_folder.split('_')[0]}")
-            valid_wavs.extend(wavs); valid_samples.extend(samples); valid_root.append(root); valid_wav2trans.update(wav2trans)
-        for root in valid_root:
-            assert root == valid_root[0]
-        valid_root = valid_root[0]
-        write_manifest(valid_wavs, valid_samples, valid_root, valid_wav2trans, f"{manifest}", "valid")
+            search_pattern = os.path.join(p2root, "Audio", valid_folder)
+            wavs, samples, wav2trans, charset = parse_folder(valid_folder, search_pattern=search_pattern)
+            write_manifest(wavs, samples, wav2trans, f"{manifest}", f"valid_{valid_folder.split('_')[0]}")
+            valid_wavs.extend(wavs); valid_samples.extend(samples);  valid_wav2trans.update(wav2trans)
+        write_manifest(valid_wavs, valid_samples, valid_wav2trans, f"{manifest}", "valid")
         valid_len = len(valid_wavs)
         for train_folder in tqdm.tqdm(train_files):
-            wavs, samples, root, wav2trans, charset = parse_folder(train_folder)
-            train_wavs.extend(wavs); train_samples.extend(samples); train_root.append(root); train_wav2trans.update(wav2trans)
-        for root in train_root:
-            assert root == train_root[0]
-        train_root = train_root[0]
-        write_manifest(train_wavs, train_samples, train_root, train_wav2trans, f"{manifest}", "train")
+            search_pattern = os.path.join(p2root, "Audio", train_folder)
+            wavs, samples, wav2trans, charset = parse_folder(train_folder, search_pattern=search_pattern)
+            write_manifest(wavs, samples, wav2trans, f"{manifest}", f"valid_{train_folder.split('_')[0]}")
+            train_wavs.extend(wavs); train_samples.extend(samples);  train_wav2trans.update(wav2trans)
+
+        write_manifest(train_wavs, train_samples, train_wav2trans, f"{manifest}", "train")
         
         charset = sorted(list(charset))
         with open(os.path.join(manifest,"dict.ltr.txt"),'w') as dct:
