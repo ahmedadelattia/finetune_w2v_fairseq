@@ -27,10 +27,14 @@ elif dataset == "NCTE_Full" or dataset == "NCTE_Full_all_mics":
     else:
         manifest += "NCTE_Full_all_mics/"
         p2root += "All_Mics/"
-elif dataset == "NCTE_2000hr":
-    p2root = "/media/ahmed/DATA 1/Research/Data/NCTE_2000hr/"
+elif dataset == "NCTE_Weak":
+    p2root = "/media/ahmed/DATA 1/Research/Data/NCTE_Weak/"
     ext = ".wav"
-    manifest += "NCTE_2000hr/"
+    manifest += "NCTE_Weak/"
+elif dataset == "Air_reading":
+    p2root = "/media/ahmed/DATA 2/Research/Data/Air_Reading/"
+    ext = ".wav"
+    manifest += "Air_Reading/"
 elif dataset == "Librispeech_Noise":
     p2root = "/media/ahmed/DATA 2/Research/Data/Librispeech/Noisy"
     ext = ".flac"
@@ -57,28 +61,31 @@ def parse_folder(folder,search_pattern = None, p2root = p2root, ext = ext, audio
                 
  
 
-    sr = sf.info(wavs[0]).samplerate
-    
+    try:
+        sr = sf.info(wavs[0]).samplerate
+    except:
+        print(search_pattern)
+        raise ValueError("No wav files found")
     # samples = [len(sf.read(w)[0]) for w in tqdm.tqdm(wavs) if sum(samples)/sr < max_duration*60]
     samples = []
-    for n, w in tqdm.tqdm(enumerate(wavs)):
+    for n, w in (enumerate(wavs)):
         s = len(sf.read(w)[0])
         samples.append(s)
         if sum(samples)/sr > max_duration*60:
             break
     wavs = wavs[:n+1]
     assert len(wavs) == len(samples), (len(wavs), len(samples))
-    print("Found",len(samples),"samples in folder",folder)
+    # print("Found",len(samples),"samples in folder",folder)
     
     wavs = [os.path.realpath(w) for w in wavs]
     wav2trans = dict()
     
     with open(os.path.join(p2root,"Transcripts",folder+".json")) as transcrip:
         lines = transcrip.read().strip().split('\n')
-    print("Found",len(lines),"transcripts in folder",folder)
+    # print("Found",len(lines),"transcripts in folder",folder)
     for line in (lines):
         line = json.loads(line)
-
+        line["audio_path"] = line["audio_path"].replace("NCTE_2000hr", "NCTE_Weak")
         if os.path.realpath(line["audio_path"]) not in wavs:
             print("Skipping",line["audio_path"])
             # print(os.path.realpath(line["audio_path"]));exit()
@@ -105,11 +112,12 @@ def write_manifest(wavs, samples, wav2trans, manifest,split_name, ext = ext):
         open(os.path.join(manifest,split_name+".ltr"),'w') as ltr:
         root = os.path.abspath(root)
         print(root,file=tsv)
+        total_samples = sum(samples)
         for n_rel, n,d in zip(wavs_rel, wavs,samples):
             print(n_rel,d,sep='\t',file=tsv)
             print(wav2trans["/".join(n.split("/")[-2:]).replace(ext,"")],file=wrd)
             print(" ".join(list(wav2trans["/".join(n.split("/")[-2:]).replace(ext,"")].replace(" ", "|"))) + " |", file=ltr)
-
+        print(f"Total Duration in {split_name} set is {total_samples/16000//3600} hours {total_samples/16000%3600//60} minutes {total_samples/16000%60} seconds")
 
 if __name__ == "__main__":
     if dataset == "NCTE_Full" or dataset == "NCTE_Full_all_mics":
@@ -129,17 +137,54 @@ if __name__ == "__main__":
         valid_wavs, valid_samples, valid_root, valid_wav2trans = [], [], [], dict() 
                
         #no cross validation in full dataset
-        for valid_folder in tqdm.tqdm(validation_files):
+        for valid_folder in tqdm.tqdm(validation_files, desc = "Validation"):
             search_pattern = os.path.join(p2root, "Audio", valid_folder)
             wavs, samples, wav2trans, charset = parse_folder(valid_folder, search_pattern=search_pattern)
-            write_manifest(wavs, samples, wav2trans, f"{manifest}", f"valid_{valid_folder.split('_')[0]}")
+            # write_manifest(wavs, samples, wav2trans, f"{manifest}", f"valid_{valid_folder.split('_')[0]}")
             valid_wavs.extend(wavs); valid_samples.extend(samples);  valid_wav2trans.update(wav2trans)
         write_manifest(valid_wavs, valid_samples, valid_wav2trans, f"{manifest}", "valid")
         valid_len = len(valid_wavs)
-        for train_folder in tqdm.tqdm(train_files):
+        for train_folder in tqdm.tqdm(train_files, desc = "Training"):
             search_pattern = os.path.join(p2root, "Audio", train_folder)
             wavs, samples, wav2trans, charset = parse_folder(train_folder, search_pattern=search_pattern)
-            write_manifest(wavs, samples, wav2trans, f"{manifest}", f"valid_{train_folder.split('_')[0]}")
+            # write_manifest(wavs, samples, wav2trans, f"{manifest}", f"valid_{train_folder.split('_')[0]}")
+            train_wavs.extend(wavs); train_samples.extend(samples);  train_wav2trans.update(wav2trans)
+
+        write_manifest(train_wavs, train_samples, train_wav2trans, f"{manifest}", "train")
+        
+        charset = sorted(list(charset))
+        with open(os.path.join(manifest,"dict.ltr.txt"),'w') as dct:
+            for e,c in enumerate(charset):
+                print(c,e,file=dct)
+    elif dataset == "Air_reading":
+        dataset_lens = []
+        #create train valid splits for x-validation. For each split, create a manifest subfolder
+
+        
+        files = [f for f in os.listdir(os.path.join(p2root, "Audio"))]
+
+        validation_files = ["Teacher Samantha", "Teacher Su"]
+        
+        
+        validation_files = [f for f in files if f.split("_")[0] in validation_files]
+        validation_files += ["Teacher Amber_2023-10-18T15-17-38Z_trimmed", "Teacher Miranda_2023-10-19T15-17-32Z", "Teacher Susan_2023-11-15T16-18-55Z_trimmed", "Teacher Diana_2023-10-19T15-14-28Z_trimmed", "Teacher Morgan_2023-09-28T15-18-36Z_trimmed"]
+        train_files      = [f for f in files if f not in validation_files]
+        # train_files = [f for f in train_files if f.split("_")[0] in ["144", "622", "2619", "2709", "2944", "4724"]]
+        train_wavs, train_samples, train_root, train_wav2trans = [], [], [], dict()
+        valid_wavs, valid_samples, valid_root, valid_wav2trans = [], [], [], dict() 
+               
+        #no cross validation in full dataset
+        for valid_folder in tqdm.tqdm(validation_files, desc = "Validation"):
+            search_pattern = os.path.join(p2root, "Audio", valid_folder)
+            wavs, samples, wav2trans, charset = parse_folder(valid_folder, search_pattern=search_pattern)
+            # write_manifest(wavs, samples, wav2trans, f"{manifest}", f"valid_{valid_folder.split('_')[0]}")
+            valid_wavs.extend(wavs); valid_samples.extend(samples);  valid_wav2trans.update(wav2trans)
+        write_manifest(valid_wavs, valid_samples, valid_wav2trans, f"{manifest}", "valid")
+        valid_len = len(valid_wavs)
+        for train_folder in tqdm.tqdm(train_files, desc = "Training"):
+            search_pattern = os.path.join(p2root, "Audio", train_folder)
+            wavs, samples, wav2trans, charset = parse_folder(train_folder, search_pattern=search_pattern)
+            # write_manifest(wavs, samples, wav2trans, f"{manifest}", f"valid_{train_folder.split('_')[0]}")
             train_wavs.extend(wavs); train_samples.extend(samples);  train_wav2trans.update(wav2trans)
 
         write_manifest(train_wavs, train_samples, train_wav2trans, f"{manifest}", "train")
@@ -153,7 +198,7 @@ if __name__ == "__main__":
         dataset_lens = []
         #create train valid splits for x-validation. For each split, create a manifest subfolder
         train_files = ["144", "622", "2619", "2709", "2944", "4724"]
-        for valid_folder in tqdm.tqdm(train_files):
+        for valid_folder in tqdm.tqdm(train_files, desc = "Training"):
             if valid_folder == "Transcripts":
                 continue
             
@@ -161,7 +206,7 @@ if __name__ == "__main__":
             write_manifest(wavs, samples, root, wav2trans, f"{manifest}/fold_{valid_folder}", "valid")
             train_wavs, train_samples, train_root, train_wav2trans = [], [], [], dict()
             valid_len = len(wavs)
-            for folder in tqdm.tqdm(train_files):
+            for folder in tqdm.tqdm(train_files, desc = "Training"):
                 if folder == "Transcripts":
                     continue
                 if folder == valid_folder:
@@ -195,7 +240,7 @@ if __name__ == "__main__":
             write_manifest(wavs, samples, root, wav2trans, f"{manifest}/fold_{folder}", "test")
             
     
-    elif dataset == "NCTE_2000hr":
+    elif dataset == "NCTE_Weak":
         dataset_lens = []
         #list of files to remove to avoid overlap between different datasets
         files_to_remove = os.listdir("/home/ahmed/Research_Data_1/Data/NCTE - Consolidated/Audio_alt")
@@ -206,16 +251,16 @@ if __name__ == "__main__":
         #remove files that are in the files_to_remove list
         files = [f for f in files if f not in files_to_remove]
         #create train, valid, test splits
-        train_files = np.random.choice(files, size = int(0.8*len(files)), replace = False)
+        train_files = np.random.choice(files, size = int(0.9*len(files)), replace = False)
         validation_files = np.random.choice([f for f in files if f not in train_files], size = int(0.1*len(files)), replace = False)
-        test_files = [f for f in files if f not in train_files and f not in validation_files]
+        # test_files = [f for f in files if f not in train_files and f not in validation_files]
         
         train_wavs, train_samples, train_root, train_wav2trans = [], [], [], dict()
         valid_wavs, valid_samples, valid_root, valid_wav2trans = [], [], [], dict()        
         test_wavs, test_samples, test_root, test_wav2trans = [], [], [], dict() 
         charset = set()
-        #no cross validation in full dataset
-        for valid_folder in tqdm.tqdm(validation_files):
+        # no cross validation in full dataset
+        for valid_folder in tqdm.tqdm(validation_files, desc = "Validation"):
             search_pattern = os.path.join(p2root, "Audio", valid_folder)
             wavs, samples, wav2trans, charset_valid = parse_folder(valid_folder, search_pattern=search_pattern)
             valid_wavs.extend(wavs); valid_samples.extend(samples);  valid_wav2trans.update(wav2trans)
@@ -224,15 +269,15 @@ if __name__ == "__main__":
         write_manifest(valid_wavs, valid_samples, valid_wav2trans, f"{manifest}", "valid")
         valid_len = len(valid_wavs)
         
-        for test_folder in tqdm.tqdm(test_files):
-            search_pattern = os.path.join(p2root, "Audio", test_folder)
-            wavs, samples, wav2trans, charset_test = parse_folder(test_folder, search_pattern=search_pattern)
-            test_wavs.extend(wavs); test_samples.extend(samples); test_wav2trans.update(wav2trans)
-            charset.update(charset_test)
-        write_manifest(test_wavs, test_samples, test_wav2trans, f"{manifest}", "valid")
-        test_len = len(test_wavs)
+        # for test_folder in tqdm.tqdm(test_files):
+        #     search_pattern = os.path.join(p2root, "Audio", test_folder)
+        #     wavs, samples, wav2trans, charset_test = parse_folder(test_folder, search_pattern=search_pattern)
+        #     test_wavs.extend(wavs); test_samples.extend(samples); test_wav2trans.update(wav2trans)
+        #     charset.update(charset_test)
+        # write_manifest(test_wavs, test_samples, test_wav2trans, f"{manifest}", "valid")
+        # test_len = len(test_wavs)
        
-        for train_folder in tqdm.tqdm(train_files):
+        for train_folder in tqdm.tqdm(train_files, desc = "Training"):
             search_pattern = os.path.join(p2root, "Audio", train_folder)
             wavs, samples, wav2trans, charset_train = parse_folder(train_folder, search_pattern=search_pattern)
             train_wavs.extend(wavs); train_samples.extend(samples); train_wav2trans.update(wav2trans)
